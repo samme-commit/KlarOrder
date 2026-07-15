@@ -1,0 +1,141 @@
+.button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+
+  box-shadow: none;
+
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.small {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+}
+
+.medium {
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 0.825rem;
+}
+
+.large {
+  min-height: 48px;
+  padding: 0 20px;
+  font-size: 0.875rem;
+}
+
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.primary:hover {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.secondary {
+  border-color: var(--border-strong);
+  background: var(--surface-elevated);
+  color: var(--text);
+}
+
+.secondary:hover {
+  border-color: rgb(255 255 255 / 18%);
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ghost:hover {
+  border-color: var(--border);
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.danger {
+  border-color: rgb(240 106 106 / 24%);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.danger:hover {
+  border-color: rgb(240 106 106 / 40%);
+  background: rgb(240 106 106 / 18%);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
+  transform: none;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.iconRight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+}
+
+.button:hover .iconRight {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .iconRight {
+    transition: none;
+  }
+
+  .button:hover,
+  .button:active,
+  .button:hover .iconRight {
+    transform: none;
+  }
+}
