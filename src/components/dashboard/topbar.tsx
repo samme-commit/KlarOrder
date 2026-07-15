@@ -52,7 +52,7 @@ const searchItems: SearchItem[] = [
   {
     label: "Ändringsordrar",
     description: "Visa de senaste ändringsordrarna",
-    href: "/dashboard#change-orders",
+    href: "/dashboard/change-orders",
     icon: ClipboardCheck,
   },
 ];

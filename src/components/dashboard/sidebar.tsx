@@ -42,7 +42,7 @@ const primaryNavigation = [
     label: "Ändringsordrar",
     href: "/dashboard/change-orders",
     icon: ClipboardCheck,
-    enabled: false,
+    enabled: true,
   },
   {
     label: "Kunder",
