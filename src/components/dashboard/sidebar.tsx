@@ -13,6 +13,7 @@ import {
   Search,
   Settings,
   UsersRound,
+  X,
 } from "lucide-react";
 
 import styles from "./sidebar.module.css";
@@ -20,6 +21,8 @@ import styles from "./sidebar.module.css";
 type DashboardSidebarProps = {
   companyName: string;
   companyCity: string;
+  isMobileOpen: boolean;
+  onClose: () => void;
 };
 
 const primaryNavigation = [
@@ -78,26 +81,44 @@ function getInitials(name: string): string {
 export function DashboardSidebar({
   companyName,
   companyCity,
+  isMobileOpen,
+  onClose,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className={styles.sidebar}>
+    <aside
+      className={`${styles.sidebar} ${
+        isMobileOpen ? styles.sidebarOpen : ""
+      }`}
+    >
       <div className={styles.sidebarTop}>
-        <Link
-          className={styles.brand}
-          href="/dashboard"
-          aria-label="KlarOrder – Översikt"
-        >
-          <Image
-            className={styles.brandLogo}
-            src="/brand/klarorder-main-logo.svg"
-            alt="KlarOrder"
-            width={158}
-            height={38}
-            priority
-          />
-        </Link>
+        <div className={styles.brandRow}>
+          <Link
+            className={styles.brand}
+            href="/dashboard"
+            aria-label="KlarOrder – Översikt"
+            onClick={onClose}
+          >
+            <Image
+              className={styles.brandLogo}
+              src="/brand/klarorder-main-logo.svg"
+              alt="KlarOrder"
+              width={158}
+              height={38}
+              priority
+            />
+          </Link>
+
+          <button
+            className={styles.mobileCloseButton}
+            type="button"
+            aria-label="Stäng sidomenyn"
+            onClick={onClose}
+          >
+            <X aria-hidden="true" size={18} strokeWidth={1.8} />
+          </button>
+        </div>
 
         <div className={styles.searchControl}>
           <Search aria-hidden="true" size={15} strokeWidth={1.8} />
@@ -113,6 +134,7 @@ export function DashboardSidebar({
           <div className={styles.navigationList}>
             {primaryNavigation.map((item) => {
               const Icon = item.icon;
+
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/dashboard" &&
@@ -133,7 +155,6 @@ export function DashboardSidebar({
                     />
 
                     <span>{item.label}</span>
-
                     <small>Snart</small>
                   </div>
                 );
@@ -147,6 +168,7 @@ export function DashboardSidebar({
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   key={item.label}
+                  onClick={onClose}
                 >
                   <Icon
                     className={styles.navigationIcon}

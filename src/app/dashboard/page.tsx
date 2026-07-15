@@ -1,11 +1,9 @@
-import Link from "next/link";
-
 import prisma from "@/lib/prisma";
 
-import styles from "./dashboard.module.css";
-
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ButtonLink } from "@/components/ui/button";
+
+import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -31,16 +29,6 @@ const dateFormatter = new Intl.DateTimeFormat("sv-SE", {
   month: "short",
   year: "numeric",
 });
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
 
 export default async function DashboardPage() {
   const company = await prisma.company.findUnique({
@@ -141,220 +129,260 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className={styles.appShell}>
-      <DashboardSidebar
-        companyName={company.name}
-        companyCity={company.city ?? "Sverige"}
-      />
+    <DashboardShell
+      companyName={company.name}
+      companyCity={company.city ?? "Sverige"}
+      userName={user?.name ?? "KlarOrder-användare"}
+    >
+      <div className={styles.appShell}>
+        <main className={styles.main}>
+          <header className={styles.header}>
+            <div>
+              <p className={styles.eyebrow}>Översikt</p>
 
-      <main className={styles.main}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>Översikt</p>
+              <h1>
+                Välkommen tillbaka
+                {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+              </h1>
 
-            <h1>
-              Välkommen tillbaka
-              {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
-            </h1>
+              <p className={styles.headerDescription}>
+                Här ser du vad som väntar på kunden och vilka arbeten som nyligen
+                har godkänts.
+              </p>
+            </div>
 
-            <p className={styles.headerDescription}>
-              Här ser du vad som väntar på kunden och vilka arbeten som nyligen
-              har godkänts.
-            </p>
-          </div>
+            <ButtonLink
+              href="#change-orders"
+              iconRight={<span>→</span>}
+            >
+              Visa ändringsordrar
+            </ButtonLink>
+          </header>
 
-          <ButtonLink
-            href="#change-orders"
-            iconRight={<span>→</span>}
+          <section
+            className={styles.statsGrid}
+            aria-label="Sammanfattning"
           >
-            Visa ändringsordrar
-          </ButtonLink>
-        </header>
-
-        <section className={styles.statsGrid} aria-label="Sammanfattning">
-          <article className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <span>Aktiva projekt</span>
-              <span className={styles.statNumber}>01</span>
-            </div>
-
-            <strong>{activeProjects.length}</strong>
-            <p>Projekt som för närvarande pågår</p>
-          </article>
-
-          <article className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <span>Väntar på kund</span>
-              <span className={styles.statNumber}>02</span>
-            </div>
-
-            <strong>{waitingForCustomer.length}</strong>
-            <p>Skickade för digitalt godkännande</p>
-          </article>
-
-          <article className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <span>Godkända</span>
-              <span className={styles.statNumber}>03</span>
-            </div>
-
-            <strong>{approvedOrders.length}</strong>
-            <p>Godkända ändringsordrar totalt</p>
-          </article>
-
-          <article className={`${styles.statCard} ${styles.statCardAccent}`}>
-            <div className={styles.statHeader}>
-              <span>Godkänt värde</span>
-              <span className={styles.statNumber}>04</span>
-            </div>
-
-            <strong>{currencyFormatter.format(approvedValue)}</strong>
-            <p>Värdet av godkända extraarbeten</p>
-          </article>
-        </section>
-
-        <section className={styles.contentGrid}>
-          <div
-            className={`${styles.panel} ${styles.ordersPanel}`}
-            id="change-orders"
-          >
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.panelEyebrow}>Senast uppdaterade</p>
-                <h2>Ändringsordrar</h2>
+            <article className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span>Aktiva projekt</span>
+                <span className={styles.statNumber}>01</span>
               </div>
 
-              <span className={styles.countBadge}>
-                {changeOrders.length} totalt
-              </span>
+              <strong>{activeProjects.length}</strong>
+              <p>Projekt som för närvarande pågår</p>
+            </article>
+
+            <article className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span>Väntar på kund</span>
+                <span className={styles.statNumber}>02</span>
+              </div>
+
+              <strong>{waitingForCustomer.length}</strong>
+              <p>Skickade för digitalt godkännande</p>
+            </article>
+
+            <article className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <span>Godkända</span>
+                <span className={styles.statNumber}>03</span>
+              </div>
+
+              <strong>{approvedOrders.length}</strong>
+              <p>Godkända ändringsordrar totalt</p>
+            </article>
+
+            <article
+              className={`${styles.statCard} ${styles.statCardAccent}`}
+            >
+              <div className={styles.statHeader}>
+                <span>Godkänt värde</span>
+                <span className={styles.statNumber}>04</span>
+              </div>
+
+              <strong>{currencyFormatter.format(approvedValue)}</strong>
+              <p>Värdet av godkända extraarbeten</p>
+            </article>
+          </section>
+
+          <section className={styles.contentGrid}>
+            <div
+              className={`${styles.panel} ${styles.ordersPanel}`}
+              id="change-orders"
+            >
+              <div className={styles.panelHeader}>
+                <div>
+                  <p className={styles.panelEyebrow}>
+                    Senast uppdaterade
+                  </p>
+
+                  <h2>Ändringsordrar</h2>
+                </div>
+
+                <span className={styles.countBadge}>
+                  {changeOrders.length} totalt
+                </span>
+              </div>
+
+              {changeOrders.length > 0 ? (
+                <div className={styles.orderList}>
+                  {changeOrders.slice(0, 6).map((changeOrder) => {
+                    const version = changeOrder.currentVersion;
+
+                    return (
+                      <article
+                        className={styles.orderRow}
+                        key={changeOrder.id}
+                      >
+                        <div className={styles.orderIdentity}>
+                          <span className={styles.orderSequence}>
+                            #{changeOrder.sequenceNumber}
+                          </span>
+
+                          <div>
+                            <h3>
+                              {version?.title ??
+                                "Namnlös ändringsorder"}
+                            </h3>
+
+                            <p>
+                              {changeOrder.project.name}
+                              <span>•</span>
+                              {changeOrder.project.customer.name}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={styles.orderMeta}>
+                          <span
+                            className={`${styles.statusBadge} ${
+                              styles[
+                                `status${changeOrder.status}` as keyof typeof styles
+                              ]
+                            }`}
+                          >
+                            {statusLabels[changeOrder.status]}
+                          </span>
+
+                          <strong>
+                            {version?.priceAmount
+                              ? currencyFormatter.format(
+                                  version.priceAmount.toNumber(),
+                                )
+                              : "Pris saknas"}
+                          </strong>
+
+                          <time
+                            dateTime={changeOrder.updatedAt.toISOString()}
+                          >
+                            {dateFormatter.format(
+                              changeOrder.updatedAt,
+                            )}
+                          </time>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  <h3>Inga ändringsordrar ännu</h3>
+                  <p>
+                    Den första ändringsordern kommer att visas här.
+                  </p>
+                </div>
+              )}
             </div>
 
-            {changeOrders.length > 0 ? (
-              <div className={styles.orderList}>
-                {changeOrders.slice(0, 6).map((changeOrder) => {
-                  const version = changeOrder.currentVersion;
+            <aside className={styles.sideColumn}>
+              <section className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <p className={styles.panelEyebrow}>
+                      Pågående arbete
+                    </p>
 
-                  return (
-                    <article className={styles.orderRow} key={changeOrder.id}>
-                      <div className={styles.orderIdentity}>
-                        <span className={styles.orderSequence}>
-                          #{changeOrder.sequenceNumber}
+                    <h2>Aktiva projekt</h2>
+                  </div>
+                </div>
+
+                <div className={styles.projectList}>
+                  {activeProjects.map((project) => (
+                    <article
+                      className={styles.projectCard}
+                      key={project.id}
+                    >
+                      <div className={styles.projectTop}>
+                        <span className={styles.projectReference}>
+                          {project.referenceNumber}
                         </span>
 
-                        <div>
-                          <h3>
-                            {version?.title ?? "Namnlös ändringsorder"}
-                          </h3>
-
-                          <p>
-                            {changeOrder.project.name}
-                            <span>•</span>
-                            {changeOrder.project.customer.name}
-                          </p>
-                        </div>
+                        <span className={styles.liveBadge}>
+                          Aktivt
+                        </span>
                       </div>
 
-                      <div className={styles.orderMeta}>
-                        <span
-                          className={`${styles.statusBadge} ${
-                            styles[
-                              `status${changeOrder.status}` as keyof typeof styles
-                            ]
-                          }`}
-                        >
-                          {statusLabels[changeOrder.status]}
+                      <h3>{project.name}</h3>
+                      <p>{project.customer.name}</p>
+
+                      <div className={styles.projectFooter}>
+                        <span>
+                          {project.changeOrders.length} ändringsordrar
                         </span>
 
+                        <span>
+                          {project.siteCity ??
+                            company.city ??
+                            "Sverige"}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <p className={styles.panelEyebrow}>
+                      Spårbar historik
+                    </p>
+
+                    <h2>Senaste aktivitet</h2>
+                  </div>
+                </div>
+
+                <div className={styles.activityList}>
+                  {company.auditEvents.map((event) => (
+                    <article
+                      className={styles.activityItem}
+                      key={event.id}
+                    >
+                      <span className={styles.activityDot} />
+
+                      <div>
                         <strong>
-                          {version?.priceAmount
-                            ? currencyFormatter.format(
-                                version.priceAmount.toNumber(),
-                              )
-                            : "Pris saknas"}
+                          {eventLabels[event.eventType] ??
+                            event.eventType}
                         </strong>
 
-                        <time dateTime={changeOrder.updatedAt.toISOString()}>
-                          {dateFormatter.format(changeOrder.updatedAt)}
+                        <p>{event.actorName ?? "KlarOrder"}</p>
+
+                        <time
+                          dateTime={event.occurredAt.toISOString()}
+                        >
+                          {dateFormatter.format(event.occurredAt)}
                         </time>
                       </div>
                     </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <h3>Inga ändringsordrar ännu</h3>
-                <p>Den första ändringsordern kommer att visas här.</p>
-              </div>
-            )}
-          </div>
-
-          <aside className={styles.sideColumn}>
-            <section className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <div>
-                  <p className={styles.panelEyebrow}>Pågående arbete</p>
-                  <h2>Aktiva projekt</h2>
+                  ))}
                 </div>
-              </div>
-
-              <div className={styles.projectList}>
-                {activeProjects.map((project) => (
-                  <article className={styles.projectCard} key={project.id}>
-                    <div className={styles.projectTop}>
-                      <span className={styles.projectReference}>
-                        {project.referenceNumber}
-                      </span>
-
-                      <span className={styles.liveBadge}>Aktivt</span>
-                    </div>
-
-                    <h3>{project.name}</h3>
-                    <p>{project.customer.name}</p>
-
-                    <div className={styles.projectFooter}>
-                      <span>
-                        {project.changeOrders.length} ändringsordrar
-                      </span>
-
-                      <span>{project.siteCity ?? company.city}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <div>
-                  <p className={styles.panelEyebrow}>Spårbar historik</p>
-                  <h2>Senaste aktivitet</h2>
-                </div>
-              </div>
-
-              <div className={styles.activityList}>
-                {company.auditEvents.map((event) => (
-                  <article className={styles.activityItem} key={event.id}>
-                    <span className={styles.activityDot} />
-
-                    <div>
-                      <strong>
-                        {eventLabels[event.eventType] ?? event.eventType}
-                      </strong>
-
-                      <p>{event.actorName ?? "KlarOrder"}</p>
-
-                      <time dateTime={event.occurredAt.toISOString()}>
-                        {dateFormatter.format(event.occurredAt)}
-                      </time>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </aside>
-        </section>
-      </main>
-    </div>
+              </section>
+            </aside>
+          </section>
+        </main>
+      </div>
+    </DashboardShell>
   );
 }

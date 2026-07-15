@@ -35,15 +35,38 @@
   min-width: 0;
 }
 
-.brand {
+.brandRow {
   display: flex;
   height: 70px;
   align-items: center;
-  padding: 0 19px;
+
+  padding: 0 12px 0 19px;
 
   border-bottom: 1px solid var(--sidebar-border);
+}
+
+.brand {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
 
   text-decoration: none;
+}
+
+.mobileCloseButton {
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--sidebar-text-secondary);
+
+  cursor: pointer;
 }
 
 .brandLogo {
@@ -313,6 +336,34 @@
 
 @media (max-width: 900px) {
   .sidebar {
-    display: none;
+    z-index: 50;
+
+    display: flex;
+    width: min(280px, calc(100vw - 36px));
+
+    box-shadow: 20px 0 60px rgb(0 0 0 / 45%);
+
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .mobileCloseButton {
+    display: grid;
+  }
+
+  .mobileCloseButton:hover {
+    border-color: var(--sidebar-border-strong);
+    background: var(--sidebar-surface-hover);
+    color: var(--sidebar-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
   }
 }

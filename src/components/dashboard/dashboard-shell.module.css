@@ -1,0 +1,48 @@
+.shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.content {
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .content {
+    margin-left: 0;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+
+    display: block;
+
+    border: 0;
+    background: rgb(0 0 0 / 62%);
+
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity var(--transition-normal);
+  }
+
+  .backdropVisible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    transition: none;
+  }
+}

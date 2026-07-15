@@ -18,9 +18,9 @@
 }
 
 .main {
-  min-height: 100vh;
-  margin-left: var(--sidebar-width);
-  padding: 44px clamp(24px, 4vw, 64px) 64px;
+  min-height: calc(100vh - 64px);
+  margin-left: 0;
+  padding: 36px clamp(24px, 4vw, 64px) 64px;
 }
 
 .header {
