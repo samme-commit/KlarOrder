@@ -6,3 +6,359 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ChangeOrderStatus {
+  DRAFT
+  SENT
+  VIEWED
+  QUESTIONED
+  APPROVED
+  DECLINED
+  CANCELLED
+  EXPIRED
+}
+
+enum PricingType {
+  FIXED_PRICE
+  ESTIMATE
+  HOURLY
+}
+
+enum DecisionType {
+  APPROVED
+  DECLINED
+  QUESTION
+}
+
+enum AuditActorType {
+  USER
+  CUSTOMER
+  SYSTEM
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships         Membership[]
+  projectsCreated     Project[]
+  changeOrdersCreated ChangeOrder[]
+  versionsCreated     ChangeOrderVersion[]
+  attachmentsUploaded Attachment[]
+  auditEvents         AuditEvent[]
+}
+
+model Company {
+  id                 String  @id @default(cuid())
+  name               String
+  slug               String  @unique
+  organizationNumber String? @unique
+  email              String?
+  phone              String?
+  website            String?
+  logoUrl            String?
+
+  addressLine1 String?
+  addressLine2 String?
+  postalCode   String?
+  city         String?
+  countryCode String  @default("SE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  customers   Customer[]
+  projects    Project[]
+  auditEvents AuditEvent[]
+}
+
+model Membership {
+  id        String         @id @default(cuid())
+  role      MembershipRole @default(MEMBER)
+  userId    String
+  companyId String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+}
+
+model Customer {
+  id        String @id @default(cuid())
+  companyId String
+
+  name  String
+  email String?
+  phone String?
+
+  addressLine1 String?
+  addressLine2 String?
+  postalCode   String?
+  city         String?
+  countryCode String  @default("SE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  projects Project[]
+
+  @@index([companyId])
+  @@index([companyId, name])
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  companyId       String
+  customerId      String
+  createdById     String
+  referenceNumber String
+  name            String
+  description     String?
+  status          ProjectStatus @default(DRAFT)
+
+  siteAddressLine1 String?
+  siteAddressLine2 String?
+  sitePostalCode   String?
+  siteCity         String?
+  siteCountryCode String  @default("SE")
+
+  startsAt    DateTime?
+  completedAt DateTime?
+  archivedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy    User          @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  changeOrders ChangeOrder[]
+  auditEvents  AuditEvent[]
+
+  @@unique([companyId, referenceNumber])
+  @@index([companyId, status])
+  @@index([customerId])
+}
+
+model ChangeOrder {
+  id                   String            @id @default(cuid())
+  projectId            String
+  createdById          String
+  sequenceNumber       Int
+  status               ChangeOrderStatus @default(DRAFT)
+  currentVersionNumber Int               @default(1)
+
+  // Endast en hash lagras. Den råa länktoken ska inte sparas.
+  accessTokenHash String? @unique
+
+  sentAt     DateTime?
+  expiresAt  DateTime?
+  resolvedAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project     Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy   User                 @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  versions    ChangeOrderVersion[]
+  auditEvents AuditEvent[]
+
+  @@unique([projectId, sequenceNumber])
+  @@index([projectId, status])
+  @@index([status, expiresAt])
+}
+
+model ChangeOrderVersion {
+  id            String @id @default(cuid())
+  changeOrderId String
+  createdById   String
+  versionNumber Int
+
+  title       String
+  description String
+
+  pricingType   PricingType
+  priceAmount   Decimal?    @db.Decimal(12, 2)
+  hourlyRate    Decimal?    @db.Decimal(12, 2)
+  estimatedHours Decimal?   @db.Decimal(8, 2)
+  currency      String      @default("SEK") @db.VarChar(3)
+  vatIncluded   Boolean     @default(true)
+  vatRate       Decimal     @default(25.00) @db.Decimal(5, 2)
+
+  timeImpactDays Int?
+  customerMessage String?
+
+  // Kunduppgifterna kopieras in i varje version så att den
+  // godkända historiken inte förändras om kunden redigeras senare.
+  customerName  String
+  customerEmail String?
+  customerPhone String?
+
+  validUntil DateTime?
+  sentAt    DateTime?
+
+  // Kan senare innehålla en komplett dokumentögonblicksbild
+  // av företag, kund, projekt och versionsinnehåll.
+  snapshot Json?
+
+  createdAt DateTime @default(now())
+
+  changeOrder ChangeOrder @relation(
+    fields: [changeOrderId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  createdBy User @relation(
+    fields: [createdById],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  decisions  Decision[]
+  attachments Attachment[]
+  auditEvents AuditEvent[]
+
+  @@unique([changeOrderId, versionNumber])
+  @@index([changeOrderId, createdAt])
+}
+
+model Decision {
+  id        String       @id @default(cuid())
+  versionId String
+  type      DecisionType
+
+  customerName  String
+  customerEmail String?
+  comment       String?
+
+  // Texten kunden såg och bekräftade vid beslutet.
+  confirmationText String?
+
+  // Vi kan lagra en hash i stället för den råa IP-adressen.
+  ipAddressHash String?
+  userAgent     String?
+
+  createdAt DateTime @default(now())
+
+  version ChangeOrderVersion @relation(
+    fields: [versionId],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  @@index([versionId, createdAt])
+  @@index([type, createdAt])
+}
+
+model Attachment {
+  id           String @id @default(cuid())
+  versionId    String
+  uploadedById String
+
+  fileName   String
+  storageKey String @unique
+  mimeType   String
+  sizeBytes  Int
+  sha256     String?
+
+  createdAt DateTime @default(now())
+
+  version ChangeOrderVersion @relation(
+    fields: [versionId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  uploadedBy User @relation(
+    fields: [uploadedById],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  @@index([versionId])
+}
+
+model AuditEvent {
+  id            String @id @default(cuid())
+  companyId     String
+  projectId     String?
+  changeOrderId String?
+  versionId     String?
+  actorUserId   String?
+
+  actorType AuditActorType
+  eventType String
+
+  // Ögonblicksbild av aktören, eftersom användar- eller
+  // kunduppgifter kan ändras senare.
+  actorName  String?
+  actorEmail String?
+
+  metadata      Json?
+  ipAddressHash String?
+  userAgent     String?
+
+  occurredAt DateTime @default(now())
+
+  company Company @relation(
+    fields: [companyId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  project Project? @relation(
+    fields: [projectId],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  changeOrder ChangeOrder? @relation(
+    fields: [changeOrderId],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  version ChangeOrderVersion? @relation(
+    fields: [versionId],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  actorUser User? @relation(
+    fields: [actorUserId],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  @@index([companyId, occurredAt])
+  @@index([projectId, occurredAt])
+  @@index([changeOrderId, occurredAt])
+  @@index([versionId])
+}
